@@ -1,0 +1,149 @@
+{
+  "name": "AIChat",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "534dd57d-374c-4c55-bbcf-363c2a24ce18",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        544,
+        384
+      ],
+      "webhookId": "ebdeba3f-6b4f-49f3-ba0a-8253dd226161",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "model": "phi3:latest",
+        "options": {}
+      },
+      "id": "862660eb-d0c4-4a16-8e6d-dda621f4c081",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "position": [
+        840,
+        608
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are the Manager of the restaurant \"Prime Burger\" located in Ao Nang (Thailand).\nYour role is to reply to customer reviews in a natural, modern, and professional way.\n\nReview to process:\n- Rating: {{ etoiles }} / 5\n- Comment: \"{{ commentaire }}\"\n\nLANGUAGE & TONE RULES (CRITICAL):\n- Use natural, conversational, and everyday English. \n- STRICTLY FORBIDDEN to use robotic, overly formal, or pompous language.\n- Be direct, warm, and human.\n\nFORMAT RULES (CRITICAL):\n- Do NOT generate ANY text before the [CUSTOMER_REPLY] tag.\n- Do NOT add any extra tags or text at the very end. Stop generating once the internal message is done.\n\nMISSION 1: [CUSTOMER_REPLY]\nWrite the public reply that will be posted under the review.\n- Length: Maximum 3 to 4 short sentences.\n- Opening: MUST start with \"Hi,\" or \"Hello,\".\n- If POSITIVE (4 or 5 stars): Thank them enthusiastically, express how happy you are they enjoyed their meal, and wish them a great stay in Ao Nang.\n- If NEGATIVE (1, 2, or 3 stars): Apologize sincerely, acknowledge this is not the usual Prime Burger standard, and invite them to reach out at contact@primeburger.com.\n- Mandatory Signature: End this section exactly with \"The Prime Burger Team, Ao Nang\".\n\nMISSION 2: [INTERNAL_MESSAGE]\nWrite a quick briefing note for the kitchen and front-of-house team.\n- Length: 1 to 2 short sentences. Direct, quick briefing style. NO signature at all.\n- If POSITIVE: Praise the team and mention exactly what the customer liked (e.g., \"Great job team, the customer loved the burger...\").\n- If NEGATIVE: Point out the exact issue raised (e.g., wait time, cold fries) so the team can fix it for the next service.\n\nEXACT EXPECTED STRUCTURE AND TONE (EXAMPLE):\n\n[CUSTOMER_REPLY]\nHi, thank you so much for taking the time to leave this review! We are thrilled that you loved the Prime Signature and our homemade fries. Enjoy the rest of your holiday in Ao Nang and see you soon!\nThe Prime Burger Team, Ao Nang\n\n[INTERNAL_MESSAGE]\nGreat job team, the customer loved the Signature burger and the fries today. Let's keep up the good work!"
+            }
+          ]
+        }
+      },
+      "id": "c4f7d144-c3f6-4a4c-87e3-58ef44311ef5",
+      "name": "Chat LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        768,
+        384
+      ],
+      "typeVersion": 1.4
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "let texteComplet = $input.item.json.text; \n\nlet morceaux = texteComplet.split(\"[INTERNAL_MESSAGE]\");\n\nlet reponseClient = morceaux[0].replace(\"[CUSTOMER_REPLY]\", \"\").trim();\n\nlet messageInterne = morceaux[1] ? morceaux[1].trim() : \"No internal message generated.\";\n\nreturn {\n  json: {\n    Client: reponseClient,\n    Intern: messageInterne\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        384
+      ],
+      "id": "590a6110-eb4e-44ae-8de4-6cfa5fa5657f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fromEmail": "thibault.roelstrate@gmail.com ",
+        "toEmail": "thibault.roelstrate@gmail.com ",
+        "subject": "New from Ao Nang",
+        "html": "=Hi, we got feedback from our restaurant in Ao Nang.\n\nHere is the comment : \n{{ $('When chat message received').item.json.chatInput }}\n\nOur new IAChatbot answered to our customer :\n{{ $json.Client }}\n\nHe also sent a text to our employees :\n{{ $json.Intern }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1376,
+        400
+      ],
+      "id": "1c98b8f3-0c7c-489c-adb2-1050730d438a",
+      "name": "Send an Email",
+      "webhookId": "a0f315a6-7c69-4fa7-983c-ae090f5f5afb"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Chat LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Chat LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c4f24ed7-c6ea-4cda-8893-68ff4e6bbb8e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "6lvKIm6YBiIs7psi",
+  "tags": []
+}
