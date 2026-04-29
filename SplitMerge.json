@@ -1,0 +1,183 @@
+{
+  "name": "SplitMerge",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -16
+      ],
+      "id": "811156f8-c017-42af-bcc7-96b71ae95574",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { name: \"Alice\", age: 17 } },\n  { json: { name: \"Bob\", age: 25 } },\n  { json: { name: \"Charlie\", age: 16 } },\n  { json: { name: \"Alice\", age: 17 } },\n  { json: { name: \"Bob\", age: 25 } },\n  { json: { name: \"Charlie\", age: 16 } },\n]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "4ad3d264-e356-491a-9a39-3a37ef324ee0",
+      "name": "DataMock"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "$json.adult = $input.item.json.age >= 18;\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -16
+      ],
+      "id": "0d3b8895-6604-4d89-97d2-5bd0d282494d",
+      "name": "isAdult"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "name, age, adult",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        128,
+        -16
+      ],
+      "id": "a3075aa0-503d-4b18-b050-7c22d4c7a2b9",
+      "name": "Split Out",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        592,
+        -16
+      ],
+      "id": "0d89816e-b867-4055-a517-5678e20ea6f2",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "$json.timestamp = $now.toFormat(\"hh:mm:ss:ms\")\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        -128
+      ],
+      "id": "3b6163ca-2e66-4448-af4e-18720b8e5067",
+      "name": "Add TimeStamp"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "$json.timestamp = $now.toFormat(\"hh:mm:ss:ms\")\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        128
+      ],
+      "id": "e9b1bbc4-85bc-4b0d-b07d-415ac065ee7c",
+      "name": "Add TimeStamp1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "DataMock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataMock": {
+      "main": [
+        [
+          {
+            "node": "isAdult",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isAdult": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Add TimeStamp",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add TimeStamp1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add TimeStamp": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add TimeStamp1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "59a3c5b3-47db-47ae-9b4d-571e50dffba6",
+  "meta": {
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "BAYN5vyGUw154xtB",
+  "tags": []
+}

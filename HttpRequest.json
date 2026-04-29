@@ -1,0 +1,101 @@
+{
+  "name": "HttpRequest",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -16
+      ],
+      "id": "9dab7a39-1d60-4f98-8562-7b5852434528",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/users",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -128,
+        -16
+      ],
+      "id": "3a7aed15-e927-4eb0-8a22-a9757f039d3e",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f8a030f6-513f-4aed-b6a7-567d61aedc04",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "1e56eab6-9794-4db5-8e81-4f74a50695ab",
+              "name": "address.city",
+              "value": "={{ $json.address.city }}",
+              "type": "string"
+            },
+            {
+              "id": "c277dc55-2bdf-4bb4-aaad-7b5a9fef41f5",
+              "name": "company.name",
+              "value": "={{ $json.company.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        -16
+      ],
+      "id": "859ec6bb-9411-4f93-a3fa-5e2ed2515fc1",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c9dc94f7-6202-4e35-9463-6ff633c612ee",
+  "meta": {
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "UlW9Uz8WtyqjMpm9",
+  "tags": []
+}
