@@ -3,26 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "model": "phi3:latest",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
-      "typeVersion": 1,
-      "position": [
-        160,
-        192
-      ],
-      "id": "d6fb7695-55fe-482f-ae62-17d71b6ef3ac",
-      "name": "Ollama Chat Model",
-      "credentials": {
-        "ollamaApi": {
-          "id": "xHuYe0MDGOs9IpBW",
-          "name": "Local Ollama service"
-        }
-      }
-    },
-    {
-      "parameters": {
         "assignments": {
           "assignments": [
             {
@@ -37,10 +17,7 @@
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [
-        -240,
-        -32
-      ],
+      "position": [-240, -32],
       "id": "1a4125c6-ed59-4cf4-86fc-3efce5449298",
       "name": "Edit Fields"
     },
@@ -50,10 +27,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
-      "position": [
-        -384,
-        -32
-      ],
+      "position": [-384, -32],
       "id": "973e5026-7930-479d-bf7c-a6f2e119e367",
       "name": "When chat message received",
       "webhookId": "5b3b2798-894a-4bbe-974b-64af57a450bd"
@@ -61,50 +35,23 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Create a sql request to add a row into my tables.\nFrom this text : {{ $json.text }}",
-        "messages": {
-          "messageValues": [
-            {
-              "type": "HumanMessagePromptTemplate",
-              "message": "Database Schema Context: \nDatabase schema:  Table: categories Columns: - id integer primary key - name text unique not null  Table: products Columns: - id integer primary key - name text not null - sku text unique not null - category_id integer references categories(id) - unit_price numeric(10,2) not null - active boolean default true  Table: customers Columns: - id integer primary key - full_name text not null - email text unique not null - country text not null  Table: orders Columns: - id integer primary key - customer_id integer references customers(id) - created_at timestamp not null - status text not null Allowed status values:   pending, paid, completed, shipped, cancelled, refunded  Table: order_items Columns: - id integer primary key - order_id integer references orders(id) - product_id integer references products(id) - quantity integer not null - unit_price numeric(10,2) not null  Relationships: - products.category_id = categories.id - orders.customer_id = customers.id - order_items.order_id = orders.id - order_items.product_id = products.id"
-            },
-            {
-              "message": "=From {{ $json.text }} I would like you to generate a sql request to add data inside my database."
-            }
-          ]
-        },
-        "batching": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.9,
-      "position": [
-        208,
-        -32
-      ],
-      "id": "4f7ba579-6a95-4f40-96c2-b992fe473a29",
-      "name": "Basic LLM Chain"
-    },
-    {
-      "parameters": {
-        "jsCode": "const text = $input.first().json.text;\n\nconst regex = /```sql\\s*\\n([\\s\\S]*?)\\n```/gi;\nconst sqlBlocks = [...text.matchAll(regex)].map(match => match[1].trim());\n\nlet sqlQueries = [];\n\nsqlBlocks.forEach(block => {\n  const queries = block.split(';')\n    .map(q => q.trim())\n    .filter(q => q.length > 0);\n  \n  sqlQueries.push(...queries.map(q => q + ';'));\n});\n\nreturn sqlQueries.map(query => ({\n  json: {\n    \"Query\": query\n  }\n}));"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        592,
-        -32
-      ],
-      "id": "8ed84773-df42-41b2-a4c7-46e538922946",
-      "name": "Code in JavaScript"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "With this text : {{ $json.Text }}\nCreate a better prompt that could be used to generate a sql request.",
+        "text": "=Based on this text\nCreate a sql request that correspond to the text.\n\nThe text is: \n {{ $json.Text }}",
         "messages": {
           "messageValues": [
             {
               "message": "Database Schema Context:  Database schema:  Table: categories Columns: - id integer primary key - name text unique not null  Table: products Columns: - id integer primary key - name text not null - sku text unique not null - category_id integer references categories(id) - unit_price numeric(10,2) not null - active boolean default true  Table: customers Columns: - id integer primary key - full_name text not null - email text unique not null - country text not null  Table: orders Columns: - id integer primary key - customer_id integer references customers(id) - created_at timestamp not null - status text not null Allowed status values:   pending, paid, completed, shipped, cancelled, refunded  Table: order_items Columns: - id integer primary key - order_id integer references orders(id) - product_id integer references products(id) - quantity integer not null - unit_price numeric(10,2) not null  Relationships: - products.category_id = categories.id - orders.customer_id = customers.id - order_items.order_id = orders.id - order_items.product_id = products.id"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "You must return only the SQL request, no other text is allowed"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "You can only select or modify rows existing.You not authorised to create a table or drop one"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "Only one request must be return."
             }
           ]
         },
@@ -112,28 +59,26 @@
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
-      "position": [
-        -64,
-        -32
-      ],
+      "position": [112, -32],
       "id": "80453861-9737-4594-b8d3-aade73971795",
       "name": "Basic LLM Chain1"
     },
     {
       "parameters": {
-        "batchSize": "={{ $json.Query.length }}",
-        "options": {
-          "reset": false
-        }
+        "model": "pixtral-large-latest",
+        "options": {}
       },
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        800,
-        -32
-      ],
-      "id": "a0772bb8-4bb5-4dce-9821-62e9693f632c",
-      "name": "Loop Over Items"
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [176, 192],
+      "id": "788dd260-f5e8-400b-8015-6e09e543f7b9",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "KLSRsgsn3IuOEkwi",
+          "name": "Mistral Cloud account"
+        }
+      }
     },
     {
       "parameters": {
@@ -141,40 +86,32 @@
         "query": "{{ $json.Query }}",
         "options": {}
       },
-      "type": "n8n-nodes-base.mySql",
-      "typeVersion": 2.5,
-      "position": [
-        1008,
-        144
-      ],
-      "id": "8ae5a79b-851d-491c-8930-3ab96ba6ff40",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [816, -32],
+      "id": "af524eb7-26b6-40a5-80cf-0769f67bb665",
       "name": "Execute a SQL query",
+      "alwaysOutputData": false,
       "credentials": {
-        "mySql": {
-          "id": "7xn6T1e9zBb15cFo",
-          "name": "MySQL account"
+        "postgres": {
+          "id": "WFDlsh60WhmsVFXH",
+          "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.text || \"\";\n\nconst regex = /```sql([\\s\\S]*?)```/i;\nconst match = text.match(regex);\n\nconst query = match ? match[1].trim() : text;\n\nreturn {\n  json: {\n    \"Query\": query\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [464, -32],
+      "id": "6802dc7a-3d8d-4f64-a244-9063cd7ad822",
+      "name": "Code in JavaScript"
     }
   ],
   "pinData": {},
   "connections": {
-    "Ollama Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Basic LLM Chain",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "Basic LLM Chain1",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Edit Fields": {
       "main": [
         [
@@ -197,7 +134,7 @@
         ]
       ]
     },
-    "Basic LLM Chain": {
+    "Basic LLM Chain1": {
       "main": [
         [
           {
@@ -208,45 +145,25 @@
         ]
       ]
     },
-    "Basic LLM Chain1": {
-      "main": [
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
         [
           {
-            "node": "Basic LLM Chain",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Over Items": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Execute a SQL query",
-            "type": "main",
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
     "Execute a SQL query": {
+      "main": [[]]
+    },
+    "Code in JavaScript": {
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "Execute a SQL query",
             "type": "main",
             "index": 0
           }
@@ -259,7 +176,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "676230b0-4c83-46c0-bab2-64eb1f4af3be",
+  "versionId": "39200b9c-8959-461f-a4bb-7c479dc68ff0",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"

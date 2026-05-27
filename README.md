@@ -76,3 +76,7 @@ The Prime Burger Team, Ao Nang
 
 Team success acknowledged for the praise on 'Prime Signature', superb quality of fries and customer engagement leading them wanting more visits. 
 Let's maintain this momentum in service excellence!
+
+
+# Concernant TextToSQL
+J'ai utilisé supabase
